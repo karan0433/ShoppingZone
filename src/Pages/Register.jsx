@@ -1,49 +1,115 @@
 import React from "react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { useDispatch } from "react-redux";
-import { registerUser } from "../Store/Slices/registerSlice";
-const Register = () => {
+import { Link, useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { signupUser } from "../Store/Slices/registerSlice";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
+const Register = () => {
+  const navigate = useNavigate();
   const dispatch = useDispatch();
-  const  signupuser = useSelector((state)=>state.register)
+  const RegisterUser = useSelector((state) => state.register);
+
   const [user, setuser] = useState({
     name: "",
     email: "",
     password: "",
     confirmpassword: "",
   });
+  const [errors, setErrors] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmpassword: "",
+  });
 
-
-  const handleRegister = (e) => {
-    e.preventDefault();
-if(user === ""){
-  alert("All Fields Are Compulsory")
-}
-    else if(user.password !== user.confirmpassword) {
-      alert("Password didn't match");
-  }
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors = { ...errors };
   
-
-    dispatch(registerUser(user))
+    // Check if the name starts with a capital letter
+    if (!/^[A-Z]/.test(user.name)) {
+      newErrors.name = "Name must start with a capital letter";
+      isValid = false;
+    } else {
+      newErrors.name = "";
+    }
   
-    console.log(
-      "name",
-      user.name,
-      "email",
-      user.email,
-      "password",
-      user.password
-    );
-    setuser({
-      name: "",
-      email: "",
-      password: "",
-      confirmpassword: "",
-    });
+    // Check if the password has at least 8 characters
+    if (user.password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters long";
+      isValid = false;
+    } else {
+      newErrors.password = "";
+    }
+  
+    // Check if the passwords match
+    if (user.password !== user.confirmpassword) {
+      newErrors.confirmpassword = "Passwords do not match";
+      isValid = false;
+    } else {
+      newErrors.confirmpassword = "";
+    }
+  
+   /// set newerror variable in seterror that is error state 
+  
+    setErrors(newErrors);
+    return isValid;
   };
   
+  const handleChange = (e) => {
+    setuser({
+      ...user,
+      [e.target.name]: e.target.value,
+    });
+
+    if (validateForm()) {
+      // Dispatch action only if the form is valid
+      dispatch(signupUser(user));
+    }
+  };
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+
+    if (validateForm()) {
+      try {
+        const response = await dispatch(signupUser(user));
+
+        if (response.payload.success) {
+          toast.success(response.payload.msg, {
+            position: "top-center",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+          });
+
+          setTimeout(() => {
+            navigate("/Login");
+          }, 5000);
+        } else {
+          toast.error(response.payload.msg, {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "colored",
+          });
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    }
+  };
+
 
   return (
     <div>
@@ -63,16 +129,17 @@ if(user === ""){
               >
                 Name
               </label>
-              
+
               <div className="flex flex-col items-start">
                 <input
                   type="text"
                   name="name"
                   placeholder="Enter Your Name"
                   value={user.name}
-                  onChange={(e) => setuser({ ...user, name: e.target.value })}
+                  onChange={handleChange}
                   className="block w-full mt-2 border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                 />
+                <div className="text-red-400">{errors.name}</div>
               </div>
             </div>
             <div className="mt-4">
@@ -88,9 +155,10 @@ if(user === ""){
                   name="email"
                   placeholder="Enter Your Email"
                   value={user.email}
-                  onChange={(e) => setuser({ ...user, email: e.target.value })}
+                  onChange={handleChange}
                   className="block w-full mt-2 border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                 />
+                <div className="text-red-400">{errors.email}</div>
               </div>
             </div>
             <div className="mt-4">
@@ -106,11 +174,10 @@ if(user === ""){
                   name="password"
                   placeholder="Enter Your Password"
                   value={user.password}
-                  onChange={(e) =>
-                    setuser({ ...user, password: e.target.value })
-                  }
+                  onChange={handleChange}
                   className="block w-full mt-2 border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                 />
+                <div className="text-red-400">{errors.password}</div>
               </div>
             </div>
             <div className="mt-4">
@@ -123,19 +190,19 @@ if(user === ""){
               <div className="flex flex-col items-start">
                 <input
                   type="password"
-                  name="password_confirmation"
+                  name="confirmpassword"
                   placeholder="Confirm-Password"
                   value={user.confirmpassword}
-                  onChange={(e) =>
-                    setuser({ ...user, confirmpassword: e.target.value })
-                  }
+                  onChange={handleChange}
                   className="block w-full mt-2 border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                 />
+                <div className="text-red-400">{errors.confirmpassword}</div>
               </div>
             </div>
-            <a href="#" className="text-sm text-blue-400 hover:underline">
+         <Link to={'/ForgotPass'}>
               Forget Password?
-            </a>
+              </Link>
+           
             <div className="flex items-center mt-4">
               <button
                 onClick={handleRegister}
@@ -188,6 +255,7 @@ if(user === ""){
           </div>
         </div>
       </div>
+      <ToastContainer />
     </div>
   );
 };

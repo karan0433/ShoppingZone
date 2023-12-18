@@ -27,19 +27,20 @@ const SliderPage = () => {
         settings: {
           speed: 200,
           dots:true,
+          arrows: false,
           slidesToShow: 1,
           slidesToScroll: 1,
         },
       },
-      // {
-      //   breakpoint:1200,
-      //   settings:{
-      //     dots:false,
-      //     arrows:true,
-      //     slidesToShow:1,
-      //     slidesToScroll:1,
-      //   }
-      // }
+      {
+        breakpoint:1200,
+        settings:{
+          dots:false,
+          arrows:true,
+          slidesToShow:1,
+          slidesToScroll:1,
+        }
+      }
     ]
   };
 

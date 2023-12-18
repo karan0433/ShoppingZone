@@ -1,12 +1,46 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "../Store/Slices/loginSlice";
+import { setCart } from "../Store/Slices/cartslice";
 
-const Navbar = () => {
+
+const Loginnav = () => {
+  const cartItems = useSelector((state) => state.cart);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
   const [isNavOpen, setIsNavOpen] = useState(false);
+  
+
+  useEffect(() => {
+    let data = localStorage.getItem("cart");
+    data = JSON.parse(data);
+    
+    if (data !== null && data !== undefined) {
+      dispatch(setCart(data));
+    }
+    // const setCartproducts = localStorage.getItem("cart") ? JSON.parse(localStorage.getItem("cart")) : []
+
+    // dispatch(setCart(setCartproducts));
+  }, []);
 
   const toggleNav = () => {
-
     setIsNavOpen(!isNavOpen);
+  };
+  const handlelogout = () => {
+    ///// function make in login slice
+    dispatch(logout(false));
+
+  
+    //// reomve user token from local storage so that he can't acces private routes
+    //// after logout
+    localStorage.removeItem("Token");
+    localStorage.removeItem("cart");
+    // console.log(logout,"log")
+    dispatch(setCart([]))
+
+    navigate("/login");
   };
 
   return (
@@ -23,7 +57,7 @@ const Navbar = () => {
                 className="h-8"
                 alt="Flowbite Logo"
               />
-              <span className="  !text-white  self-center text-2xl font-semibold whitespace-nowrap dark:text-white">
+              <span className=" !text-white self-center text-2xl font-semibold whitespace-nowrap dark:text-white">
                 Shopping Zone
               </span>
             </Link>
@@ -57,22 +91,15 @@ const Navbar = () => {
             >
               <ul className="font-medium flex flex-col p-4 md:p-0 mt-4 border  rounded-lg  md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0  dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700">
                 <li>
-                  <Link 
+                  <Link
                     to="/"
                     className="block py-2 px-3 !text-white  rounded md:bg-transparent md:text-blue-700 md:p-0 dark:text-blue md:dark:text-blue-500"
                     aria-current="page"
                   >
-                    Home
+                  Home
                   </Link>
                 </li>
-                <li>
-                  <Link
-                    to="/About"
-                    className="block py-2 px-3 !text-white rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
-                  >
-                    About
-                  </Link>
-                </li>
+
                 <li>
                   <Link
                     to="/products"
@@ -83,19 +110,27 @@ const Navbar = () => {
                 </li>
                 <li>
                   <Link
-                    to="/register"
+                    to="/profile"
                     className="block py-2 px-3 !text-white rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
                   >
-                    Register
+                    Profile
                   </Link>
                 </li>
                 <li>
                   <Link
-                    to="/login"
+                    to="/cart"
                     className="block py-2 px-3 !text-white rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
                   >
-                    Login
+                    <span>Cart {cartItems.length}</span>
                   </Link>
+                </li>
+                <li>
+                  <button
+                    onClick={handlelogout}
+                    className="block py-2 px-3 !text-white rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
+                  >
+                    Logout
+                  </button>
                 </li>
               </ul>
             </div>
@@ -106,4 +141,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default Loginnav;

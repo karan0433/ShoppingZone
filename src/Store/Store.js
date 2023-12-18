@@ -1,9 +1,17 @@
 import { configureStore } from "@reduxjs/toolkit";
-import registerUsers from './Slices/registerSlice'; 
+import signupUser from './Slices/registerSlice'; 
+import loginUser  from "./Slices/loginSlice";
+import productReducer from './Slices/productslice'
+import cartReducer from './Slices/cartslice'
+import profileReducer from './Slices/profileSlice'
 
 const store = configureStore({
     reducer: {
-        register: registerUsers, 
+        register: signupUser, 
+        login : loginUser,
+        product : productReducer,
+        cart : cartReducer,
+        profile : profileReducer
     },
 });
 

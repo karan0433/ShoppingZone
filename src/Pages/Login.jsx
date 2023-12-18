@@ -1,31 +1,84 @@
 import React from "react";
 import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { useSelector } from "react-redux/es/hooks/useSelector";
+import { loginUser, logout } from "../Store/Slices/loginSlice";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useNavigate } from "react-router-dom";
+import CircularProgress from '@mui/material/CircularProgress';
+import Box from '@mui/material/Box';
 
 const Login = () => {
+  const naviagte = useNavigate();
+  const dispatch = useDispatch();
+  const SigninUser = useSelector((state) => state.login);
   const [userdata, setuserdata] = useState({
     email: "",
     password: "",
   });
 
-  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-  const isValidPassword = passwordRegex.test(userdata.password)
+  const [isSubmitting, setIsSubmitting] = useState(false); /// fpr making the login button disable once it is clicked
 
+  const handleLogin = (e) => {
+    setuserdata({
+      ...userdata,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleFormSubmit = async (e) => {
+    try {
+      e.preventDefault();
+      setIsSubmitting(true); 
+
+      let LOGIN = await dispatch(loginUser(userdata));
+      console.log("Responce: ", LOGIN);
+
+      if (LOGIN?.payload?.success === true) {
+        //// local storage. setitem is for protected routes thats we can acces in privateroutes.js
+        localStorage.setItem("Token", LOGIN?.payload?.token);
+        dispatch(logout(true))
+        toast.success(LOGIN?.payload?.msg, {
+          position: "top-center",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
+
+        setTimeout(() => {
+          naviagte("/profile");
+        }, 1000);
+      } else {
+        toast.error(LOGIN?.payload?.msg, {
+          position: "top-center",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
+        setIsSubmitting(false);
+      }
+
+    
+    } catch (error) {
+      console.error("Error:", error);
+      setIsSubmitting(false); // Reset the state in case of an error
+    }
+  };
+
+  /// loading processing button
+  const processingbtn = <Box sx={{ display: 'flex' }}>
+  <CircularProgress color="inherit" />
+</Box>
   
-  const handleFormSubmit = (e) => {
-    e.preventDefault();
-    const { email, password } = userdata;
-
-    if (email === "" || password === "") {
-        alert("Please fill both fields");
-    } else if (!isValidPassword) {
-        alert("Requires a minimum of 8 characters, with at least one letter and one number");
-    }
-    else {
-        alert("form submit succesfully")
-        setuserdata({email:"",password:""})
-       
-    }
-};
 
   return (
     <div className="h-screen flex bg-gray-100">
@@ -41,11 +94,10 @@ const Login = () => {
               type="email"
               className={`w-full p-2 text-gray-800 border rounded-md outline-none text-sm transition duration-150 ease-in-out mb-4`}
               id="email"
+              name="email"
               placeholder="Your Email"
               value={userdata.email}
-              onChange={(e) =>
-                setuserdata({ ...userdata, email: e.target.value })
-              }
+              onChange={handleLogin}
             />
           </div>
           <div>
@@ -54,23 +106,24 @@ const Login = () => {
               type="password"
               className={`w-full p-2 text-gray-800 border rounded-md outline-none text-sm transition duration-150 ease-in-out mb-4`}
               id="password"
+              name="password"
               placeholder="Your Password"
               value={userdata.password}
-              onChange={(e) =>
-                setuserdata({ ...userdata, password: e.target.value })
-              }
+              onChange={handleLogin}
             />
           </div>
 
           <div className="flex justify-center items-center mt-6">
             <button
               className={`bg-blue-600 py-2 px-4 text-sm text-white rounded border border-indigo-700 focus:outline-none focus:border-indigo-800`}
+              disabled={isSubmitting} // Disable the button when submitting
             >
-              Login
+              {isSubmitting ?  processingbtn : "Login"}
             </button>
           </div>
         </form>
       </div>
+      <ToastContainer />
     </div>
   );
 };
